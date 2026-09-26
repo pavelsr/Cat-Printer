@@ -19,5 +19,22 @@ license = { text = "MIT" }
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
+[project.scripts]
+printer = "printer:main"
+server = "server:serve"
+
+# Flat layout: scripts live at the repo root, not in a cat_printer/ package.
+# uvx --from git+... still builds a wheel, so Hatchling needs an explicit file list.
+[tool.hatch.build.targets.wheel]
+only-include = [
+    "printer.py",
+    "server.py",
+    "main.py",
+    "printer_lib",
+    "www",
+    "i18n.i18n",
+    "config.json",
+]
+
 [tool.uv]
 package = false
