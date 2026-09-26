@@ -347,16 +347,45 @@ class PrinterDriver(Commander):
         if name is None and address is None:
             return
         self.model = Models.get(name, Models['_ZZ00'])
-        self.device = BleakClient(address)
+        self.device = BleakClient(self._resolve_ble_target(name, address))
         def notify(_char, data):
             if data == self.data_flow_pause:
                 self._paused = True
             elif data == self.data_flow_resume:
                 self._paused = False
-        self.loop(
-            self.device.connect(timeout=self.connection_timeout),
-            self.device.start_notify(self.rx_characteristic, notify)
-        )
+        self.loop(self.device.connect(timeout=self.connection_timeout))
+        self.loop(self.device.start_notify(self.rx_characteristic, notify))
+
+    def _resolve_ble_target(self, name, address):
+        '''Use an already-known BlueZ device so connect works without a new scan.'''
+        if platform.system() != 'Linux':
+            return address
+        try:
+            device = self.loop(self._bluez_known_device(address, name))
+            if device is not None:
+                return device
+        except Exception:
+            pass
+        return address
+
+    async def _bluez_known_device(self, address, name):
+        from bleak.backends.bluezdbus import defs
+        from bleak.backends.bluezdbus.manager import get_global_bluez_manager
+        manager = await get_global_bluez_manager()
+        wanted = address.lower()
+        for path, interfaces in manager._properties.items():
+            props = interfaces.get(defs.DEVICE_INTERFACE)
+            if not props:
+                continue
+            if props.get('Address', '').lower() != wanted:
+                continue
+            return BLEDevice(
+                props.get('Address', address),
+                props.get('Name') or name,
+                {'path': path, 'props': props},
+                props.get('RSSI') or 0,
+            )
+        return None
 
     def scan(self, identifier: str=None, *, use_result=False, everything=False):
         ''' Scan for supported devices, optionally filter with `identifier`,
@@ -381,7 +410,7 @@ class PrinterDriver(Commander):
                     error('invalid-address-0', address, exception=PrinterError)
                 if use_result:
                     self.connect(name, address)
-                return [BLEDevice(address, name)]
+                return [BLEDevice(address, name, None, 0)]
             if (identifier not in Models and
                 identifier[2::3] != ':::::' and len(identifier.replace('-', '')) != 32):
                 error('model-0-is-not-supported-yet', identifier, exception=PrinterError)
@@ -599,11 +628,20 @@ def magick_text(stdin, image_width, font_size, font_family):
     if _MagickExe is None:
         fatal(i18n("imagemagick-not-found"), code=ExitCodes.MissingDependency)
 
+    text = stdin.read()
+    if isinstance(text, bytes):
+        text = text.decode('utf-8', errors='replace')
+    text = text.rstrip('\n')
+
+    command = [_MagickExe, '-background', 'white', '-fill', 'black',
+            '-size', f'{image_width}x', '-pointsize', str(font_size)]
+    if font_family:
+        command.extend(['-font', font_family])
+    # caption:@- is blocked by ImageMagick security policy on many distros
+    command.extend([f'caption:{text}', 'pbm:-'])
+
     read_fd, write_fd = os.pipe()
-    subprocess.Popen([_MagickExe, '-background', 'white', '-fill', 'black',
-            '-size', f'{image_width}x', '-font', font_family, '-pointsize',
-            str(font_size), 'caption:@-', 'pbm:-'],
-            stdin=stdin, stdout=io.FileIO(write_fd, 'w'))
+    subprocess.Popen(command, stdout=io.FileIO(write_fd, 'w'))
     return io.FileIO(read_fd, 'r')
 
 def magick_image(stdin, image_width, dither):
