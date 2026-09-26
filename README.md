@@ -29,7 +29,7 @@ Or run without installing:
 
 ```bash
 uvx --from git+https://github.com/pavelsr/Cat-Printer python printer.py --help
-echo 'W01' | uvx --from git+https://github.com/pavelsr/Cat-Printer \
+echo 'Hello world' | uvx --from git+https://github.com/pavelsr/Cat-Printer \
   python printer.py -s 4,MX10,AA:BB:CC:DD:EE:FF -t 24,DejaVu-Sans-Mono -
 ```
 
