@@ -2,12 +2,12 @@
 
 ## Summary
 
-Fork of [mrbrandao/Cat-Printer](https://github.com/mrbrandao/Cat-Printer): print to Bluetooth cat printers on Linux. Dependencies are fixed. Install is simpler (`pyproject.toml`, PEP 518 and PEP 621). Tested on **Ubuntu 26.04.1 LTS**.
+Fork of [NaitLee/Cat-Printer](https://github.com/NaitLee/Cat-Printer): print to Bluetooth cat printers on Linux. Dependencies are fixed. Install is simpler (`pyproject.toml`, PEP 518 and PEP 621). Tested on **Ubuntu 26.04.1 LTS**.
 
 ## Features
 
 - Web UI, CLI, and Docker/Podman (port 8095)
-- Models: `GB01`, `GB02`, `GB03`, `GT01`, `YT01`, `MX05`, `MX06`, `MX08`, `MX09`, `MX10`
+- Models: `GB01`, `GB02`, `GB03`, `GT01`, `YT01`, `MX05`, `MX06`, `MX08`, `MX09`, `MX10`, `MX11`, `PD01`, `SC03h`, `MXTP`
 - `uv` / `uvx` setup; Linux gets `bleak` only
 - Text and photos via ImageMagick; already-paired printers need `-s seconds,MODEL,MAC`
 

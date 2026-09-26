@@ -88,7 +88,7 @@ except ImportError as error:
 # Import essential basic parts
 
 try:
-    from printer_lib.models import Models, Model
+    from printer_lib.models import Models, Model, isValidModel
     from printer_lib.commander import Commander, reverse_bits
     from printer_lib.text_print import TextCanvas
 except ImportError:
@@ -403,7 +403,7 @@ class PrinterDriver(Commander):
         if identifier:
             if identifier.find(',') != -1:
                 name, address = identifier.split(',')
-                if name not in Models:
+                if not isValidModel(name):
                     error('model-0-is-not-supported-yet', name, exception=PrinterError)
                 # TODO: is this logic correct?
                 if address[2::3] != ':::::' and len(address.replace('-', '')) != 32:
@@ -411,16 +411,16 @@ class PrinterDriver(Commander):
                 if use_result:
                     self.connect(name, address)
                 return [BLEDevice(address, name, None, 0)]
-            if (identifier not in Models and
+            if (not isValidModel(identifier) and
                 identifier[2::3] != ':::::' and len(identifier.replace('-', '')) != 32):
                 error('model-0-is-not-supported-yet', identifier, exception=PrinterError)
         # scanner = BleakScanner()
         devices = [x for x in self.loop(
             BleakScanner.discover(self.scan_time)
-        ) if x.name in Models]
+        ) if isValidModel(x.name)]
         if identifier:
-            if identifier in Models:
-                devices = [dev for dev in devices if dev.name == identifier]
+            if isValidModel(identifier):
+                devices = [dev for dev in devices if dev.name.startswith(identifier)]
             else:
                 devices = [dev for dev in devices if dev.address.lower() == identifier.lower()]
         if use_result and len(devices) != 0:

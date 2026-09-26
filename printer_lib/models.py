@@ -16,10 +16,36 @@ class Model():
     is_new_kind: bool = False
     problem_feeding: bool = False
 
-Models = {}
+def isValidModel(name):
+    return name and any(name.startswith(model) for model in Models)
 
+class ModelRegistry(dict):
+    """Registry for printer models with support for prefix-based lookup.
+
+    PrinterDriver.connect() uses `Models.get(name, ...)` with an exact key match on
+    the discovered Bluetooth name. Some printers advertise names that extend a
+    known model prefix (e.g. `MXTP-01` for model `MXTP`). This registry overrides
+    `get` so that when there is no exact key match, it falls back to the longest
+    prefix key whose value has been registered.
+    """
+
+    def get(self, key, default=None):
+        # Try exact match first to preserve existing behavior.
+        if dict.__contains__(self, key):
+            return dict.get(self, key, default)
+
+        # Fallback: resolve by longest matching prefix.
+        if isinstance(key, str):
+            matches = [model for model in self.keys() if key.startswith(model)]
+            if matches:
+                best_match = max(matches, key=len)
+                return dict.get(self, best_match, default)
+
+        return default
+
+Models = ModelRegistry()
 # all known supported models
-for name in '_ZZ00 GB01 GB02 GB03 GT01 MX05 MX06 MX08 MX09 MX10 YT01'.split(' '):
+for name in '_ZZ00 GB01 GB02 GB03 GT01 MX05 MX06 MX08 MX09 MX10 MX11 PD01 YT01 SC03h MXTP'.split(' '):
     Models[name] = Model()
 
 # that can receive compressed data
