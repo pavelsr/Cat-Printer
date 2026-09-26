@@ -17,7 +17,15 @@ Fork of [mrbrandao/Cat-Printer](https://github.com/mrbrandao/Cat-Printer): print
 sudo apt install bluez imagemagick && sudo usermod -aG bluetooth "$USER"
 ```
 
-Log in again. Then run from GitHub ([pavelsr/Cat-Printer](https://github.com/pavelsr/Cat-Printer)):
+Log in again. Then install from GitHub ([pavelsr/Cat-Printer](https://github.com/pavelsr/Cat-Printer)):
+
+```bash
+uv tool install git+https://github.com/pavelsr/Cat-Printer
+cat-printer --help
+cat-printer-server
+```
+
+Or run without installing:
 
 ```bash
 uvx --from git+https://github.com/pavelsr/Cat-Printer python printer.py --help
