@@ -20,8 +20,8 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project.scripts]
-printer = "printer:main"
-server = "server:serve"
+cat-printer = "printer:main"
+cat-printer-server = "server:serve"
 
 # Flat layout: scripts live at the repo root, not in a cat_printer/ package.
 # uvx --from git+... still builds a wheel, so Hatchling needs an explicit file list.
