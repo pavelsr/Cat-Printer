@@ -17,11 +17,19 @@ Fork of [NaitLee/Cat-Printer](https://github.com/NaitLee/Cat-Printer): print to 
 sudo apt install bluez imagemagick && sudo usermod -aG bluetooth "$USER"
 ```
 
-Log in again. Then run from GitHub ([pavelsr/Cat-Printer](https://github.com/pavelsr/Cat-Printer)):
+Log in again. Then install from GitHub ([pavelsr/Cat-Printer](https://github.com/pavelsr/Cat-Printer)):
+
+```bash
+uv tool install git+https://github.com/pavelsr/Cat-Printer
+cat-printer --help
+cat-printer-server
+```
+
+Or run without installing:
 
 ```bash
 uvx --from git+https://github.com/pavelsr/Cat-Printer python printer.py --help
-echo 'W01' | uvx --from git+https://github.com/pavelsr/Cat-Printer \
+echo 'Hello world' | uvx --from git+https://github.com/pavelsr/Cat-Printer \
   python printer.py -s 4,MX10,AA:BB:CC:DD:EE:FF -t 24,DejaVu-Sans-Mono -
 ```
 
