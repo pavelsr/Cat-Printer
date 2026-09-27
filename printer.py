@@ -289,6 +289,8 @@ class PrinterDriver(Commander):
     energy: int = None
     'Thermal strength of printer, range 0x0000 to 0xffff'
     speed: int = 32
+    feed_pixels: int = 128
+    'Blank paper to feed after print, in pixels at 200 DPI (~16 mm)'
 
     mtu: int = 200
 
@@ -493,11 +495,14 @@ class PrinterDriver(Commander):
     def _finish(self):
         self.end_lattice()
         self.set_speed(8)
-        if self.model.problem_feeding:
-            for _ in range(128):
-                self.draw_bitmap(bytes(self.model.paper_width // 8))
-        else:
-            self.feed_paper(128)
+        feed_px = self.feed_pixels
+        if feed_px:
+            if self.model.problem_feeding:
+                blank = bytes(self.model.paper_width // 8)
+                for _ in range(feed_px):
+                    self.draw_bitmap(blank)
+            else:
+                self.feed_paper(feed_px)
         self.get_device_state()
         self.flush()
 
@@ -714,6 +719,8 @@ def _main():
             help=i18n('control-printer-thermal-strength'))
     parser.add_argument('-q', '--quality', metavar='1-4', type=int, default=3,
             help=i18n('print-quality'))
+    parser.add_argument('--feed', metavar='mm', type=int, default=None,
+            help=i18n('paper-feed-after-print'))
     parser.add_argument('-d', '--dry', action='store_true',
             help=i18n('dry-run-test-print-process-only'))
     parser.add_argument('-u', '--unknown', action='store_true',
@@ -746,6 +753,11 @@ def _main():
         printer.energy = 0x4000
     if args.quality is not None:
         printer.speed = 4 * (args.quality + 5)
+    if args.feed is not None:
+        if args.feed < 0:
+            fatal(i18n('paper-feed-must-be-non-negative'), code=ExitCodes.InvalidArgument)
+        # 200 DPI, same as set_dpi_as_200(); 16 mm ≈ 126 px, omitted flag keeps 128
+        printer.feed_pixels = int(args.feed * 200 / 25.4 + 0.5)
 
     image_param = args.image.split(',')
     if 'flip' in image_param:
