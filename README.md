@@ -10,6 +10,7 @@ Fork of [NaitLee/Cat-Printer](https://github.com/NaitLee/Cat-Printer): print to 
 - Models: `GB01`, `GB02`, `GB03`, `GT01`, `YT01`, `MX05`, `MX06`, `MX08`, `MX09`, `MX10`, `MX11`, `PD01`, `SC03h`, `MXTP`
 - `uv` / `uvx` setup; Linux gets `bleak` only
 - Text and photos via ImageMagick; already-paired printers need `-s seconds,MODEL,MAC`
+- `preview.sh` to check text size before you print (text only)
 
 ## Installation
 
@@ -36,3 +37,25 @@ echo 'Hello world' | uvx --from git+https://github.com/pavelsr/Cat-Printer \
 Or clone: `git clone https://github.com/pavelsr/Cat-Printer && cd Cat-Printer && uv sync`  
 Web UI: `uv run python server.py` · CLI: `uv run python printer.py --help`  
 Docker: `cd build-container && podman compose up --build` (or `docker`). See [doc/troubleshooting.md](doc/troubleshooting.md).
+
+## Text preview
+
+`preview.sh` shows how simple text will look before you print. Use it for labels and other short text. It does not preview photos or PostScript.
+
+You need a clone of this repo, plus ImageMagick and fontconfig. The script uses `cat-printer` if it is installed, or `uvx` if it is not.
+
+```bash
+./preview.sh
+```
+
+You can also pass the text and size:
+
+```bash
+./preview.sh --text 'Hello World' --font Courier --fit 4:2.5 --no-real-sizes
+```
+
+`--fit` is the box in centimeters. The max width is 4.88 cm. Example: `4:2.5` is width and height, `4` is width only, `:2.5` is height only.
+
+The script writes a PBM file in `/tmp/cat-printer/` and then prints **Command for direct printing:** plus a command you can copy. That command uses `--feed 5` (about 5 mm of extra paper after the print). Change it with `--feed N`.
+
+See `./preview.sh --help` for all options.
